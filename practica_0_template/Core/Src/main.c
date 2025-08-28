@@ -55,7 +55,10 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+int len(int* arr) {
+	int size = sizeof(arr) / sizeof(arr[0]);
+	return size;
+}
 /* USER CODE END 0 */
 
 /**
@@ -93,6 +96,9 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int size = 4;
+  int msTimeIndex = 0;
+  int msTimeArray[] = {500, 200, 1000, 20};
   while (1)
   {
     /* USER CODE END WHILE */
@@ -101,14 +107,20 @@ int main(void)
 
 	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	  //HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(500);
+	  HAL_Delay(msTimeArray[msTimeIndex]);
 
 	  if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)){
-		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
-		  while(1);
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		  HAL_Delay(100);
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		  HAL_Delay(100);
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		  HAL_Delay(100);
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		  HAL_Delay(1000);
+		  msTimeIndex = (msTimeIndex + 1) % size;
+		  printf("value is %d", msTimeIndex);
 	  }
-
-
   }
   /* USER CODE END 3 */
 }

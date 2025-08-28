@@ -59,9 +59,11 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
-  while (1)
-  {
-  }
+	  while (1)
+	  {
+		  BSP_LED_Toggle(LED2);
+		  HAL_Delay(10000);
+	  }
 }
 
 /**
