@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "API_delay.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,25 +57,7 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 const uint8_t MAX_AMOUNT_ITERATIONS = 10;
-const uint32_t SIZE = 3;
-const tick_t FREQ[] = { 1000, 200, 100};
-
-bool_t delayRead( delay_t * delay ) {
-	if (!delay->running) {
-		delay->running = true;
-		delay->startTime = HAL_GetTick();
-		return false;
-	}
-	delay->running = (HAL_GetTick() - delay->startTime) < delay->duration;
-	return !delay->running;
-}
-void delayWrite( delay_t * delay, tick_t duration ){
-	delay->duration = duration;
-}
-void delayInit( delay_t * delay, tick_t duration ) {
-	delayWrite(delay, duration);
-	delay->running = false;
-}
+const tick_t FREQ[] = {500, 100, 100, 1000};
 
 /* USER CODE END 0 */
 
@@ -112,6 +94,7 @@ int main(void)
   uint32_t counter = 0;
   delay_t delay;
   delayInit(&delay, FREQ[0]);
+  uint8_t size = sizeof(FREQ) / sizeof(FREQ[0]);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,7 +109,7 @@ int main(void)
 		  counter++;
 		  if (counter == MAX_AMOUNT_ITERATIONS) {
 			  counter = 0;
-			  pointer = (pointer + 1) % SIZE;
+			  pointer = (pointer + 1) % size;
 			  delayWrite(&delay, FREQ[pointer]);
 		  }
 	  }
