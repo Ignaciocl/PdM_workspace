@@ -1,76 +1,84 @@
-# Práctica 3 - Retardos no bloqueantes en STM32
+# Práctica 4 - Anti-rebounce FSM on STM32
 
-Este proyecto fue desarrollado en una placa **ST NUCLEO-F4xx** y tiene como objetivo implementar un módulo de software para trabajar con **retardos no bloqueantes**, utilizando como base las funciones de la **Práctica 2**.
-
-## Autor
-Ignacio Carol Lugones
+This project was developed on an **ST NUCLEO-F4xx** board and implements a **Finite State Machine (FSM)** to handle button debouncing in software, based on the non-blocking delays created in **Practice 3**.
 
 ---
 
-## 📌 Objetivo
-Encapsular las funciones necesarias para manejar retardos no bloqueantes dentro de una API propia, y utilizarlas para controlar el parpadeo de un LED en la placa NUCLEO-F4xx.
+## 📌 Objective
+- Implement a software FSM to correctly read the push-button state, ignoring contact bouncing.
+- Trigger actions/events on button **press** (falling edge) and **release** (rising edge).
+- Use a **non-blocking delay of 40 ms** for debouncing.
 
 ---
 
-## 🗂️ Estructura del proyecto
-Dentro del directorio `Drivers` se creó la carpeta `API` con las subcarpetas:
+## 🗂️ Project Structure
+A new project was created as a copy of Practice 3, with the following additional modules:
 
 ```
-API/
- ├── Inc/
- │    └── API_delay.h
- └── Src/
-      └── API_delay.c
+Drivers/
+ └── API/
+      ├── Inc/
+      │    └── API_debounce.h
+      └── Src/
+           └── API_debounce.c
 ```
 
-- **`API_delay.h`**: contiene las definiciones, `typedef` y prototipos de funciones.
-- **`API_delay.c`**: contiene la implementación de las funciones de la API.
-
-> 🔹 Nota: Se debe agregar la carpeta `API/Inc` al *include path* del proyecto en Eclipse para que compile correctamente.
+- **`API_debounce.h`**: public function prototypes and declarations.
+- **`API_debounce.c`**: private declarations, state machine implementation, and logic.
 
 ---
 
-## ⚙️ Tipos y estructuras definidas
-En `API_delay.h` se definen:
+## ⚙️ FSM Definition
+The FSM manages four states:
 
 ```c
-typedef uint32_t tick_t;   // Requiere incluir <stdint.h>
-typedef bool     bool_t;   // Requiere incluir <stdbool.h>
-
-typedef struct {
-    tick_t startTime;
-    tick_t duration;
-    bool_t running;
-} delay_t;
+typedef enum {
+    BUTTON_UP,
+    BUTTON_FALLING,
+    BUTTON_DOWN,
+    BUTTON_RAISING
+} debounceState_t;
 ```
 
-### Funciones públicas
-```c
-void delayInit(delay_t * delay, tick_t duration);
-bool_t delayRead(delay_t * delay);
-void delayWrite(delay_t * delay, tick_t duration);
-bool_t delayIsRunning(delay_t * delay);  // Punto 3
-```
+- **Initial state:** `BUTTON_UP`.
+- **Transition conditions:** Based on button input with debouncing delay.
 
 ---
 
-## 🔦 Punto 2 - Programa principal
-Se implementó un programa que hace **titilar un LED en forma periódica** usando retardos no bloqueantes, siguiendo la secuencia:
-
+## 🔦 Functions
+### Public functions in `API_debounce.h`
 ```c
-const uint32_t TIEMPOS[] = {500, 100, 100, 1000};
+void debounceFSM_init(void);
+void debounceFSM_update(void);
+bool_t readKey(void);
 ```
 
-- Se utiliza una única variable `delay_t` para gestionar los retardos.
-- Se aplica **duty cycle del 50%**, es decir, el LED permanece encendido y apagado el mismo tiempo en cada ciclo.
-- Antes de modificar la duración del retardo con `delayWrite`, se verifica que el delay no esté corriendo usando la función `delayIsRunning`.
+- **`debounceFSM_init()`** → Initializes the FSM in `BUTTON_UP`.
+- **`debounceFSM_update()`** → Must be called periodically. Handles state transitions and debounce timing.
+- **`readKey()`** → Returns `true` once if the button was pressed (falling edge), then resets its internal flag to `false`.
+
+### Private implementation in `API_debounce.c`
+- `debounceState_t` declared as a **private global variable** (`static`).
+- Internal flag (`bool_t wasPressed`) set on falling edge and cleared on `readKey()`.
 
 ---
 
-## ✅ Conclusión
-Este ejercicio permitió:
-- Practicar el encapsulamiento de código en una **API modular**.
-- Implementar **retardos no bloqueantes** en un microcontrolador STM32.
-- Controlar un LED de forma flexible utilizando una sola estructura `delay_t` y distintas duraciones.
+## 🚦 Main Program Behavior
+The `main.c` program integrates both **API_delay** (from Practice 3) and **API_debounce** to control the LED:
+
+- The LED toggles with a duty cycle of **50%**.
+- Default blink period is **500 ms**.
+- Each button press (detected via `readKey()`) switches the LED blink period between:
+  - **100 ms**
+  - **500 ms**
+
+---
+
+## ✅ Conclusion
+This practice consolidates:
+- Use of **modular APIs** (`API_delay` and `API_debounce`).
+- Implementation of an **anti-bounce FSM** using non-blocking delays.
+- Event-driven programming by reacting to button edges (press/release).
+- A flexible LED blinking system controlled via button input.
 
 ---
